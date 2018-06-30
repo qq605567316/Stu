@@ -158,4 +158,67 @@
     <delete id="deleteCustomer" parameterType="Integer">
 	    delete from customer where cust_id=#{id}
 	</delete>
+    <!-- 导入excel数据 -->
+    <insert id="insertInfoBatch" parameterType="java.util.List">
+        insert into
+        customer(cust_name,cust_source,cust_industry,cust_level,cust_phone,cust_mobile)
+        values
+        <foreach collection="list" item="item" index="index"
+                 separator="," >
+            (#{item.cust_name},#{item.cust_source},#{item.cust_industry},#{item.cust_level},#{item.cust_phone},#{item.cust_mobile})
+        </foreach>
+    </insert>
+    <!-- 导出excel数据 -->
+    <select id="selectApartInfo" parameterType="customer" resultType="customer">
+        SELECT
+        cust_id,
+        cust_name,
+        cust_user_id,
+        cust_create_id,
+        b.dict_item_name cust_source,
+        c.dict_item_name cust_industry,
+        d.dict_item_name cust_level,
+        cust_linkman,
+        cust_phone,
+        cust_mobile,
+        cust_createtime
+        FROM
+        customer a
+        LEFT JOIN (
+        SELECT
+        dict_id,
+        dict_item_name
+        FROM
+        base_dict
+        WHERE
+        dict_type_code = '002'
+        ) b ON a.cust_source = b.dict_id
+        LEFT JOIN (
+        SELECT
+        dict_id,
+        dict_item_name
+        FROM
+        base_dict
+        WHERE
+        dict_type_code = '001'
+        ) c ON a.cust_industry = c.dict_id
+        LEFT JOIN (
+        SELECT
+        dict_id,
+        dict_item_name
+        FROM
+        base_dict
+        WHERE
+        dict_type_code = '006'
+        ) d ON a.cust_level = d.dict_id
+        <include refid="selectCustomerListWhere"/>
+    </select>
+    <select id="transform" parameterType="String" resultType="String">
+        SELECT
+        dict_id
+        FROM
+        base_dict
+        WHERE
+        dict_item_name = #{itemname}
+    </select>
 </mapper>

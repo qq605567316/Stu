@@ -51,7 +51,7 @@
 							<font color="red">  <span id="message">${msg}</span></font>
 							
 							<%-- 提交后的位置：/WEB-INF/jsp/customer.jsp--%>
-							<form action="user/login" method="post" onsubmit="return check()">
+							<form action="/user/login" method="post" onsubmit="return check()">
 								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
 								<br /> 账&nbsp;号：<input id="usercode" type="text" name="usercode" /><br />
 								<br /> 密&nbsp;码：<input id="password" type="password" name="password" /> <br />

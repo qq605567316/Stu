@@ -28,5 +28,19 @@ public interface CustomerDao
 	
 	// 删除客户
 	int deleteCustomer(Integer id);
-	
+
+	/** 导入数据
+	 * @param customerList
+	 */
+	public void insertInfoBatch(List<Customer> customerList);
+
+    /**
+     * 导出数据
+     */
+    public List<Customer> selectApartInfo(Customer customer);
+
+	/**
+	 *根据数据字典转化
+	 */
+	public String transform(String itemname);
 }

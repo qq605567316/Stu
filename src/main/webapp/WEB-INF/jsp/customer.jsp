@@ -5,14 +5,14 @@
 <%@ taglib prefix="ssm" uri="http://ssm.com/common/"%>
 <%
 	String path = request.getContextPath();
-	String basePath = request.getScheme() + "://" + request.getServerName() 
+	String basePath = request.getScheme() + "://" + request.getServerName()
 	                   + ":" + request.getServerPort() + path + "/";
 %>
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<title>客户管理</title>
-	
+
 	<!-- 引入css样式文件 -->
 	<!-- Bootstrap Core CSS -->
 	<link href="<%=basePath%>/resources/css/bootstrap.min.css" rel="stylesheet" />
@@ -25,8 +25,8 @@
 	<!-- Custom Fonts -->
 	<link href="<%=basePath%>/resources/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
 	<link href="<%=basePath%>/resources/css/boot-crm.css" rel="stylesheet" type="text/css" />
-	
-	
+
+
 	<!-- 引入js文件 -->
 	<!-- jQuery -->
 	<script src="<%=basePath%>/resources/js/jquery-1.11.3.min.js"></script>
@@ -47,7 +47,7 @@
 	/**
 	 * 清空新建客户窗口中的数据
 	 */
-	function clearCustomer() 
+	function clearCustomer()
 	{
 	    $("#new_customerName").val("");
 	    $("#new_customerFrom").val("")
@@ -59,14 +59,13 @@
 	    $("#new_zipcode").val("");
 	    $("#new_address").val("");
 	}
-	
-	
+
 	/**
 	*创建客户
 	*/
-	function createCustomer() 
+	function createCustomer()
 	{
-		$.post("<%=basePath%>customer/create.action",$("#new_customer_form").serialize(),function(data){
+		$.post("/customer/create",$("#new_customer_form").serialize(),function(data){
 	        if(data =="OK")
 	        {
 	            alert("客户创建成功！");
@@ -79,19 +78,19 @@
 	        }
 	    });
 	}
-	
-	
+
+
 	/**
 	* 通过id获取修改的客户信息
 	* 打开修改页面的对话框
 	*/
-	function editCustomer(id) 
+	function editCustomer(id)
 	{
 	    $.ajax({
 	        type:"get",
-	        url:"<%=basePath%>customer/getCustomerById.action",
+	        url:"/customer/getCustomerById",
 	        data:{"id":id},
-	        success:function(data) 
+	        success:function(data)
 	        {
 	            $("#edit_cust_id").val(data.cust_id);
 	            $("#edit_customerName").val(data.cust_name);
@@ -106,14 +105,14 @@
 	        }
 	    });
 	}
-	
-	
+
+
     /**
     * 执行修改客户操作
     */
-	function updateCustomer() 
+	function updateCustomer()
     {
-		$.post("<%=basePath%>customer/update.action",$("#edit_customer_form").serialize(),function(data){
+		$.post("/customer/update",$("#edit_customer_form").serialize(),function(data){
 			if(data =="OK")
 			{
 				alert("客户信息更新成功！");
@@ -126,16 +125,73 @@
 			}
 		});
 	}
-    
-    
+
+    /**
+    * 全选或取消全选
+    * */
+	function checkOrCancelAll() {
+		var checkAll = document.getElementById("checkAll");
+		var checkedEit = checkAll.checked;
+		var allCheck = document.getElementsByName("check");
+		if(checkedEit){
+		    for(var i = 0;i < allCheck.length;i++){
+		        allCheck[i].checked = true;
+			}
+		}else {
+            for(var i = 0;i < allCheck.length;i++){
+                allCheck[i].checked = false;
+            }
+		}
+    }
+
+    /**
+     * 批量删除
+     * */
+	function deleteAll() {
+        if (confirm('确定要删除所选吗?')) {
+            var checks = document.getElementsByName("check");
+            var ids = new Array();
+            for(var i = 0;i<checks.length;i++){
+                if(checks[i].checked){
+                    ids.push(checks[i].value);
+				}
+			}
+            if (ids.length == 0) {
+                alert('未选中任何项！');
+                return false;
+            }
+            alert(ids);
+            $.ajax({
+                type:"post",
+                url:"/customer/deleteall",
+                traditional:true,
+                async:true,
+                data:{ids:ids},
+                dataType:"json",
+				function (data) {
+                    if (data == "OK") {
+                        alert("客户删除成功！");
+                        window.location.reload();
+                    }
+                    else {
+                        alert("删除客户失败！");
+                        window.location.reload();
+                    }
+                }
+            });
+        }
+    }
+
+
 	/**
 	* 删除客户
-	*/
-	function deleteCustomer(id) 
+	**/
+	function deleteCustomer(id)
 	{
-	    if(confirm('确实要删除该客户吗?')) 
+	    alert(id);
+	    if(confirm('确实要删除该客户吗?'))
 	    {
-			$.post("<%=basePath%>customer/delete.action",{"id":id},
+			$.post("/customer/delete",{"id":id},
 			function(data)
 			{
 			            if(data =="OK")
@@ -151,7 +207,25 @@
 			 });
 	    }
 	}
+
+    /**
+	 * 导入
+     */
+    function CheckWorkFile() {
+        var obj = document.getElementById('upfile');
+        if(obj.value == ''){
+            alert('请选择要导入的文件');
+            return false;
+        }
+        var stuff = obj.value.substr(obj.value.length-4,4);
+        if(stuff != '.xls'&&stuff != 'xlsx'){
+            alert('只能导入Excel文件');
+            return false;
+        }
+        return true;
+    }
 </script>
+
 
 
 <body>
@@ -160,14 +234,14 @@
   <nav class="navbar navbar-default navbar-static-top" role="navigation"
 		 style="margin-bottom: 0">
 	<div class="navbar-header">
-		<a class="navbar-brand" href="<%=basePath%>customer/list.action">客户管理系统</a>
+		<a class="navbar-brand" href="/customer/list">客户管理系统</a>
 	</div>
 	<!-- 导航栏右侧图标部分 -->
 	<ul class="nav navbar-top-links navbar-right">
-	
+
 		<!-- 用户信息和系统设置 start -->
 		<li class="dropdown">
-			<a class="dropdown-toggle" data-toggle="dropdown" href="#"> 
+			<a class="dropdown-toggle" data-toggle="dropdown" href="#">
 				<i class="fa fa-user fa-fw"></i>
 				<i class="fa fa-caret-down"></i>
 			</a>
@@ -175,13 +249,13 @@
 				<li><a href="#"><i class="fa fa-user fa-fw"></i>
 				               用户：${USER_SESSION.user_name}
 				    </a>
-				</li>	
+				</li>
 				<li>
 					<a href="/user/logout">
 					<i class="fa fa-sign-out fa-fw"></i>退出登录
 					</a>
 				</li>
-			</ul> 
+			</ul>
 		</li>
 		<!-- 用户信息和系统设置结束 -->
 	</ul>
@@ -190,20 +264,20 @@
 		<div class="sidebar-nav navbar-collapse">
 			<ul class="nav" id="side-menu">
 				<li>
-				    <a href="${pageContext.request.contextPath }/customer/list.action" class="active">
+				    <a href="${pageContext.request.contextPath }/customer/list" class="active">
 				      <i class="fa fa-edit fa-fw"></i> 客户管理
 				    </a>
 				</li>
 			</ul>
 		</div>
 	</div>
-	<!-- 左侧显示列表部分 end--> 
+	<!-- 左侧显示列表部分 end-->
   </nav>
-  
-  
-  
-  
-  
+
+
+
+
+
     <!-- 客户列表查询部分  start-->
 	<div id="page-wrapper">
 		<div class="row">
@@ -211,19 +285,19 @@
 				<h1 class="page-header">客户管理</h1>
 			</div>
 		</div>
-		
+
 		<!--条件查询部分Start -->
 		<div class="panel panel-default">
 			<div class="panel-body">
-			
+
 				<!-- 条件表单 -->
 				<form class="form-inline" method="get" action="${pageContext.request.contextPath }/customer/list">
 					<div class="form-group">
-						<label for="customerName">客户名称</label> 
+						<label for="customerName">客户名称</label>
 						<input type="text" class="form-control" id="customerName" value="${custName }" name="custName" />
 					</div>
 					<div class="form-group">
-						<label for="customerFrom">客户来源</label> 
+						<label for="customerFrom">客户来源</label>
 						<select	class="form-control" id="customerFrom" name="custSource">
 							<option value="">--请选择--</option>
 							<c:forEach items="${fromType}" var="item">
@@ -234,7 +308,7 @@
 						</select>
 					</div>
 					<div class="form-group">
-						<label for="custIndustry">所属行业</label> 
+						<label for="custIndustry">所属行业</label>
 						<select	class="form-control" id="custIndustry"  name="custIndustry">
 							<option value="">--请选择--</option>
 							<c:forEach items="${industryType}" var="item">
@@ -261,11 +335,14 @@
 			</div>
 		</div>
 		<!--条件查询部分End -->
-		
-		
-		
-		
-		<a href="#" class="btn btn-primary" data-toggle="modal" data-target="#newCustomerDialog" onclick="clearCustomer()">新建</a>
+
+
+
+
+        <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#newCustomerDialog" onclick="clearCustomer()">新建</a>
+        <a href="#" class="btn btn-primary" data-toggle="modal" onclick="deleteAll()">批量删除</a>
+        <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#newImport">导入</a>
+        <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#newExport">导出</a>
 		<div class="row">
 			<div class="col-lg-12">
 				<div class="panel panel-default">
@@ -273,6 +350,7 @@
 					<table class="table table-bordered table-striped">
 						<thead>
 							<tr>
+                                <th><input type="checkbox" id="checkAll" onclick="checkOrCancelAll()"/></th>
 								<th>编号</th>
 								<th>客户名称</th>
 								<th>客户来源</th>
@@ -286,6 +364,7 @@
 						<tbody>
 							<c:forEach items="${page.rows}" var="row">
 								<tr>
+                                    <td><input type="checkbox" name='check' value=${row.cust_id} /></td>
 									<td>${row.cust_id}</td>
 									<td>${row.cust_name}</td>
 									<td>${row.cust_source}</td>
@@ -336,13 +415,13 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="new_customerFrom" style="float:left;padding:7px 15px 0 27px;">客户来源</label> 
+						<label for="new_customerFrom" style="float:left;padding:7px 15px 0 27px;">客户来源</label>
 						<div class="col-sm-10">
 							<select	class="form-control" id="new_customerFrom" name="cust_source">
 								<option value="">--请选择--</option>
 								<c:forEach items="${fromType}" var="item">
 									<option value="${item.dict_id}"<c:if test="${item.dict_id == custSource}">selected</c:if>>
-									${item.dict_item_name }									
+									${item.dict_item_name }
 									</option>
 								</c:forEach>
 							</select>
@@ -350,7 +429,7 @@
 					</div>
 					<div class="form-group">
 						<label for="new_custIndustry" style="float:left;padding:7px 15px 0 27px;">所属行业</label>
-						<div class="col-sm-10"> 
+						<div class="col-sm-10">
 							<select	class="form-control" id="new_custIndustry"  name="cust_industry">
 								<option value="">--请选择--</option>
 								<c:forEach items="${industryType}" var="item">
@@ -414,9 +493,97 @@
 
 
 
+<%-- 创建导入模态框 --%>
+<div class="modal fade" id="newImport" tabindex="-1" role="dialog"
+	 aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalLabe5">选择导入文件</h4>
+			</div>
+			<div class="modal-body">
+				<form method="post" enctype="multipart/form-data"
+					  action="${pageContext.request.contextPath }/customer/import">
+					<table>
+						<tr>
+							<td>上传文件:</td>
+							<td><input id="upfile" type="file" name="upfile"
+									   class="btn btn-blue"></td>
+						</tr>
+                    </table>
+			        <div class="modal-footer">
+                        <input class="btn btn-blue" type="submit" value="提交" onclick="return CheckWorkFile()">
+				        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+			        </div>
+                </form>
+            </div>
+		</div>
+	</div>
+</div>
 
-
-
+<%-- 创建导出模态框 --%>
+<div class="modal fade" id="newExport" tabindex="-1" role="dialog"
+	 aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="myModalLabe4">是否导出目标文件</h4>
+			</div>
+			<div class="modal-body">
+				<form method="get" action="${pageContext.request.contextPath }/customer/export">
+					<div class="form-group">
+						<label for="customerName">客户名称</label>
+						<input type="text" class="form-control" id="exportName" value="${custName }" name="exportName" />
+					</div>
+					<div class="form-group">
+						<label for="customerFrom">客户来源</label>
+						<select	class="form-control" id="exportSource" name="exportSource">
+							<option value="">所有来源</option>
+							<c:forEach items="${fromType}" var="item">
+								<option value="${item.dict_id}" <c:if test="${item.dict_id == custSource}">selected</c:if>>
+										${item.dict_item_name }
+								</option>
+							</c:forEach>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="custIndustry">所属行业</label>
+						<select	class="form-control" id="exportIndustry"  name="exportIndustry">
+							<option value="">所有行业</option>
+							<c:forEach items="${industryType}" var="item">
+								<option value="${item.dict_id}"  <c:if test="${item.dict_id == custIndustry}"> selected</c:if>>
+										${item.dict_item_name }
+								</option>
+							</c:forEach>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="custLevel">客户级别</label>
+						<select	class="form-control" id="exportLevel" name="exportLevel">
+							<option value="">所有级别</option>
+							<c:forEach items="${levelType}" var="item">
+								<option value="${item.dict_id}"
+										<c:if test="${item.dict_id == custLevel}"> selected</c:if>>
+										${item.dict_item_name }
+								</option>
+							</c:forEach>
+						</select>
+					</div>
+					<div class="modal-footer">
+						<input class="btn btn-blue" type="submit" value="确定">
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
 
 <!-- 修改客户模态框 -->
 <div class="modal fade" id="customerEditDialog" tabindex="-1" role="dialog"
@@ -427,7 +594,7 @@
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
-				<h4 class="modal-title" id="myModalLabel">修改客户信息</h4>
+				<h4 class="modal-title" id="myModalLabe2">修改客户信息</h4>
 			</div>
 			<div class="modal-body">
 				<form class="form-horizontal" id="edit_customer_form">
@@ -439,7 +606,7 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="edit_customerFrom" style="float:left;padding:7px 15px 0 27px;">客户来源</label> 
+						<label for="edit_customerFrom" style="float:left;padding:7px 15px 0 27px;">客户来源</label>
 						<div class="col-sm-10">
 							<select	class="form-control" id="edit_customerFrom" name="cust_source">
 								<option value="">--请选择--</option>
@@ -451,7 +618,7 @@
 					</div>
 					<div class="form-group">
 						<label for="edit_custIndustry" style="float:left;padding:7px 15px 0 27px;">所属行业</label>
-						<div class="col-sm-10"> 
+						<div class="col-sm-10">
 							<select	class="form-control" id="edit_custIndustry"  name="cust_industry">
 								<option value="">--请选择--</option>
 								<c:forEach items="${industryType}" var="item">
